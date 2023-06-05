@@ -1,0 +1,22 @@
+Plik z zapisem konfiguracji MUSI mieć podany format:
+
+- W pierwszym rzędzie znajować się będzie ilość (n) zdefiniowanych kolorów
+- w kolejnych n rzędach powinny się znaleźć wartości r, g, b, a danego koloru (w przedziale 0 - 255)
+- W następnym rzędzie musza znaleść się 2 wartości: ilośc "klatek" (m) danej konfiguracji oraz czas 
+	trwania każdej z klatek (w sekundach)
+- W kolejnych m rzędach znaleźć się powinno po 20 wartości (w przedziale 1 - n), przedstawiających jaki
+	kolor powinien przybrac i-ty sześcian 
+
+
+Plik swojej konfiguracji umieść w folderze saves, po czym po otworzeiu programu naciśnij przycisk 
+	"Load save". Wpisz nazwę swojego pliku konfiguracyjnego i kliknij enter. Twoja konfiguracja
+	powinna się pokazać na ekranie, jeśli została utworzona poprawnie. W przeciwnym razie zobaczysz 
+	powiadomienie o złym formacie pliku. Naruszneie którejkolwiek zasady z powyższysz w trakcie zapisu
+	pliku konfiguracyjnego, lub nadpisanie na koniec dodatkowych informacji będzie skutkować oknem 
+	błędu. 
+Numerację sześcianów znajdziesz w pliku "Numeracja Sześcianów"
+Przykładowy zapis konfiguracyjny, który jest defaultowo otwierany przez program znajduje się w folderze
+	saves pod nazwą "example_save.txt"
+
+Miłej zabawy,
+MonkeLauncher. 
