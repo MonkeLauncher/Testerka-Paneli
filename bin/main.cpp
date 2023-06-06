@@ -8,6 +8,7 @@
 #include "intro package/draw_intro.hpp"
 #include "textBox.h"
 #include "Useful Functions.h"
+#include "scrollBar.h"
 
 using namespace sf;
 using namespace std;
@@ -28,7 +29,7 @@ Event zdazenie;
 CircleShape button (71, 6);
 RectangleShape textWindow, dark;
 Font minecrafter;
-Text buttonText [2], fileText, errorText [2];
+Text buttonText [2], fileText, errorText [2], speedTitle, frameTitle;
 
 string saveName, tempSaveName;
 int frame = 0, framesAmount = 0, settingFrame = 0;
@@ -37,6 +38,8 @@ bool changeFrame = true, newFile = false, fileError = false;
 
 Intro intro;
 textBox fileInput (20, Color (230, 230, 230), false);
+scrollBar speedBar, frameBar;
+
 
 //	szeœciok¹ty i inne wektory
 vector <CircleShape> hexagon;
@@ -145,9 +148,7 @@ void preprocessing () {
 	textWindow.setOutlineThickness (1);
 	textWindow.setOutlineColor (sf::Color (220, 220, 220));
 	
-	// teksty
-	//buttonText [2], fileText, errorText [2];
-	
+	// teksty	
 	minecrafter.loadFromFile ("minecraft_font.ttf");
 	
 	buttonText[0].setFillColor (Color (230, 230, 230));
@@ -168,6 +169,17 @@ void preprocessing () {
 	fileText.setString ("Wpisz nazwe pliku:");
 	fileText.setPosition (textWindow.getPosition().x + (textWindow.getSize().x - fileText.getGlobalBounds().width) / 2, textWindow.getPosition().y + 60);
 	
+	frameTitle.setFillColor (Color (230, 230, 230));
+	frameTitle.setCharacterSize (25);
+	frameTitle.setFont (minecrafter);
+	frameTitle.setPosition (20, 95);
+	
+	speedTitle.setFillColor (Color (230, 230, 230));
+	speedTitle.setCharacterSize (20);
+	speedTitle.setFont (minecrafter);
+	speedTitle.setPosition (20, 35);
+	
+	
 	// textBox
 	fileInput.setFont (minecrafter);
 	fileInput.setPosition (Vector2f (textWindow.getPosition().x + 20, textWindow.getPosition().y + 140));
@@ -184,6 +196,30 @@ void preprocessing () {
 	errorText[1].setFont (minecrafter);
 	errorText[1].setString ("Blad we wczytywaniu pliku.");
 	errorText[1].setPosition (textWindow.getPosition().x + (textWindow.getSize().x - errorText[1].getGlobalBounds().width) / 2, textWindow.getPosition().y + 120);
+	
+	// scroll bars
+	speedBar.setBarAxis (axis::Horizontal);
+	speedBar.setPointOutlineThickness (1);
+	speedBar.setPointOutlineColor (Color (70, 70, 70));
+	speedBar.setBarFillColor (Color (30, 30, 30));
+	speedBar.setPointFillColor (Color (50, 50, 50));
+	speedBar.setBarSize ({okno.getSize().x - 550, 15});
+	speedBar.setPointRadius (15);
+	speedBar.setBarPosition (200, 40);
+	speedBar.setPressed (false);
+	speedBar.setPointPosition (speedBar.getBarPosition().x -(speedBar.getPointRadius()), 
+	                           speedBar.getBarPosition().y + speedBar.getBarSize().y / 2 - speedBar.getPointRadius());
+	frameBar.setBarAxis (axis::Horizontal);
+	frameBar.setPointOutlineThickness (1);
+	frameBar.setPointOutlineColor (Color (70, 70, 70));
+	frameBar.setBarFillColor (Color (30, 30, 30));
+	frameBar.setPointFillColor (Color (50, 50, 50));
+	frameBar.setBarSize ({okno.getSize().x - 550, 15});
+	frameBar.setPointRadius (15);
+	frameBar.setBarPosition (200, 100);
+	frameBar.setPressed (false);
+	frameBar.setPointPosition (frameBar.getBarPosition().x -(frameBar.getPointRadius()), 
+	                           frameBar.getBarPosition().y + frameBar.getBarSize().y / 2 - frameBar.getPointRadius());
 }
 
 
@@ -206,20 +242,43 @@ void drawAll () {
 	}
 	
 	// handling frames
-	frame++;
-	if (frame >= frameTime * 60) {
-		frame = 0;
-		settingFrame++;
+	if (frameBar.getPressed()) {
+		settingFrame = frameBar.getPointSection (framesAmount); 
+		settingFrame %= framesAmount;
 		changeFrame = true;
-		
-		if (settingFrame == framesAmount) settingFrame = 0;
 	}
+	
+	else {
+		frame++;
+		if (frame >= frameTime * 60) {
+			frame = 0;
+			settingFrame++;
+			changeFrame = true;
+			
+			if (settingFrame == framesAmount) settingFrame = 0;
+		}
+	}
+	
+	// changing speed 
+	if (speedBar.getPressed()) {
+		frameTime = 1.0 * speedBar.getPointSection (20) / 20;
+	}
+	
+	// handle bar titles
+	frameTitle.setString ("Klatka: " + to_string (settingFrame + 1));
+	speedTitle.setString ("Okres: " + to_string ((int)(frameTime)) + "." + to_string ((int)(frameTime * 100) % 100) + "s");
+	
+		
 	
 	
 	// hexagon drawin'
 	for (int i = 0; i < 20; i++) okno.draw (hexagon[i]);
 	okno.draw (button);
 	for (int i = 0; i < 2; i++) okno.draw (buttonText[i]);
+	speedBar.drawTo (okno); 
+	frameBar.drawTo (okno); 
+	okno.draw (frameTitle);
+	okno.draw (speedTitle);
 	
 	// ekran nowego pliku
 	if (newFile) {
@@ -354,6 +413,27 @@ void reacting () {
 			}
 		}
 		else button.setFillColor (Color (0, 0, 0));
+		
+		
+		// scrollbary
+		if (speedBar.isMouseOver(okno)) {
+			speedBar.setPointFillColor (Color (70, 70, 70));
+				
+			if (MBumped (Mouse::Left)) speedBar.setPressed (true);
+		}
+		else speedBar.setPointFillColor(Color (50, 50, 50));
+		if (speedBar.getPressed() && !(MPR (Mouse::Left))) speedBar.setPressed (false);
+		if (speedBar.getPressed()) speedBar.setPointPosition (MPos(okno).x - speedBar.getPointRadius());
+		
+		
+		if (frameBar.isMouseOver(okno)) {
+			frameBar.setPointFillColor (Color (70, 70, 70));
+				
+			if (MBumped (Mouse::Left)) frameBar.setPressed (true);
+		}
+		else frameBar.setPointFillColor(Color (50, 50, 50));
+		if (frameBar.getPressed() && !(MPR (Mouse::Left))) frameBar.setPressed (false);
+		if (frameBar.getPressed()) frameBar.setPointPosition (MPos(okno).x - frameBar.getPointRadius());
 	}
 }
 
